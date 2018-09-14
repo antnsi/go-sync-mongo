@@ -69,15 +69,16 @@ var statusCmd = &cobra.Command{
 			}
 			for _, collname := range collnames {
 				dstColl := dst.Session.DB(dbname).C(collname)
-				var dstLastRecord LastRecord
-				_ = dstColl.Find(nil).Sort("-$natural").Limit(1).One(&dstLastRecord)
+				srcColl := src.Session.DB(dbname).C(collname)
 
-				dstQuery := dstColl.Find(bson.M{"_id": bson.M{"$lt": dstLastRecord.ID}})
+				var srcLastRecord LastRecord
+				_ = srcColl.Find(nil).Sort("-$natural").Limit(1).One(&srcLastRecord)
+
+				dstQuery := dstColl.Find(bson.M{"_id": bson.M{"$lt": srcLastRecord.ID}})
 				total, _ = dstQuery.Count()
 				dstTotal += total
 
-				srcColl := src.Session.DB(dbname).C(collname)
-				srcQuery := srcColl.Find(bson.M{"_id": bson.M{"$lt": dstLastRecord.ID}})
+				srcQuery := srcColl.Find(bson.M{"_id": bson.M{"$lt": srcLastRecord.ID}})
 				total, _ = srcQuery.Count()
 				srcTotal += total
 			}
